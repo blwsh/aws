@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+  traefik:
+    image: traefik:v2.4
+    restart: always
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`dashboard.local.tote.rocks`)"
+      - "traefik.http.services.dashboard.loadbalancer.server.port=8080"
+    networks:
+      - traefik
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./etc/traefik:/etc/traefik
+  whoami:
+    image: traefik/whoami
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.local.tote.rocks`)"
+      - "traefik.http.routers.whoami.tls=true"
+    networks:
+      - traefik
+  mysql:
+    image: mysql:5.7
+    environment:
+      - "MYSQL_ROOT_PASSWORD=root"
+    ports:
+      - 3306:3306
+    networks:
+      - traefik
+  dns:
+    restart: always
+    image: strm/dnsmasq
+    volumes:
+      - ./dnsmasq.conf:/etc/dnsmasq.conf
+    ports:
+      - "53:53"
+      - "53:53/udp"
+    cap_add:
+      - NET_ADMIN
+volumes:
+  mysql:
+networks:
+  traefik:
+    external: true

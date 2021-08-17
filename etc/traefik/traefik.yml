@@ -1,0 +1,21 @@
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false
+ping: {}
+log: {}
+api:
+  dashboard: true
+  insecure: true
+providers:
+  docker:
+    defaultRule: 'Host(`{{ normalize .Name }}.local.tote.rocks`)'
+    exposedByDefault: false
+    network: traefik
+  file:
+    directory: /etc/traefik/providers
+    watch: true
+entryPoints:
+  web:
+    address: ':80'
+  websecure:
+    address: ':443'
